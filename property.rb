@@ -1,17 +1,22 @@
 class Property
   
-  attr_accessor :name, :rent, :color
+  attr_accessor :name, :color
   
   def initialize(name, rent, color)
     @name = name
-    @rent = rent
     @color = color
   end
 
-  def play
-    #check_rent
-    #check_for_mortgage
+  def play!
     puts "this works"
   end
   
+  # Not yet implemented
+  def calc_rent
+    check_if_mortgaged
+    check_if_monopoly
+    check_for_buildings
+  end
+  
 end
+
