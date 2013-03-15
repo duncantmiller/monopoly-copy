@@ -1,7 +1,7 @@
 
 class Property
   
-  attr_accessor :name, :color, :owner, :mortgage, :houses 
+  attr_accessor :name, :color, :owner, :mortgaged, :improvements 
   
   def initialize(name, price, color)
     @name = name
