@@ -20,5 +20,13 @@ class Property
       end
     end
   end
+
+  def offer_property_for_sale
+  end
+
+  def determine_rent
+  end
 end
+
+
 
