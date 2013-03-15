@@ -18,6 +18,14 @@ class Board
       n += 1
     end
   end
+  
+  # The "times" method offers a shortcut to the above:
+  # def set_squares
+  #   40.times do |n|
+  #      @squares[n] = Property.new("placeholder #{n}")
+  #    end
+  #  end
+  #  MT 3/15/2013 
 
   def loop_around_board(position)
     if position > 39
