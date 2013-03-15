@@ -11,21 +11,31 @@ class Property
 
   def play!(player)
     puts "Landed on square. This is #{@name}."
-      if @owner == nil
-        offer_property_for_sale
-      elsif @owner == player
-        return
-      else
-        determine_rent        
-      end
+    if for_sale?
+      offer_property_for_sale
+    elsif owned_by?(player)
+      return
+    else
+      assess_rent(player)        
     end
   end
+
+  def for_sale?
+    !@owner
+  end
+  
+  def owned_by?(player)
+    player == @owner
+  end
+
+
 
   def offer_property_for_sale
   end
 
-  def determine_rent
+  def assess_rent(player)
   end
+  
 end
 
 
