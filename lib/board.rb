@@ -19,14 +19,20 @@ class Board
     end
   end
 
-  def return_square(position)
+  def loop_around_board(position)
     if position > 39
-      @squares[position - 40]
+      position - 40
     else
-      @squares[position]
+      position
     end
-  end 
-
+  end
+  
+  def return_square(square_number)
+    @squares[square_number]
+  end
+  
+  
+   
 end
 
 # game = Game.new
