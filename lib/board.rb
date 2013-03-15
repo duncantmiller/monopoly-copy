@@ -19,6 +19,28 @@ class Board
     end
   end
 
+  def return_square(position)
+    if position > 39
+      @squares[position - 40]
+    else
+      @squares[position]
+    end
+  end 
+
+end
+
+# game = Game.new
+# roll_dice
+# update_position
+# square = return_square(position)
+# square.play
+# player.position = square.key
+      
+
+
+
+
+
 
 
 
