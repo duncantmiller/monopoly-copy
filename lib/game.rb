@@ -1,8 +1,14 @@
+require_relative 'player'
+
 class Game
   def initialize
     create_players
     @players.shuffle
     @current_turn_index = 0
+  end
+  
+  def create_players
+    @players = [Player.new]
   end
 
   def play!
@@ -23,3 +29,6 @@ class Game
     @players.select { | player | player.won? }.any?
   end
 end
+
+game = Game.new
+puts game.inspect
