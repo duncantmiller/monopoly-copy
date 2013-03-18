@@ -24,7 +24,8 @@ class Game
     if @current_turn_index >= @players.size
       @current_turn_index = 0
     end
-    @players[@current_turn_index].play_round
+    @players[@current_turn_index].play_round # this makes the order of play with @players[1] 
+                                             # first and @players[0] last
   end
 
   def game_over?

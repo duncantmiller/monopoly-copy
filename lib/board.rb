@@ -14,13 +14,18 @@ class Board
       n += 1
     end
   end
+  
+  def loop_position(position, player)
+    if position > 39
+      player.pass_go
+      position - 40
+    else
+      position
+    end
+  end 
 
   def return_square(position)
-    if position > 39
-      @squares[position - 40]
-    else
       @squares[position]
-    end
   end
 
 end

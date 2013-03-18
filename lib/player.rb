@@ -12,7 +12,6 @@ class Player
   
   def play_round
     roll_dice
-    puts roll_dice
     advance_token
     handle_square
     handle_trading_phase #needs to be built
@@ -36,18 +35,21 @@ class Player
     if @doubles_count == 3
       advance_to(:jail)
     else
-      puts "dice value: #{@dice.value}"
-      advance_by(@dice.value)
-      
+      advance_by(@dice.value)    
     end
   end
 
-  def advance_by(dice_value)
-    @position += dice_value
+  def advance_by(dice_value) 
+    pending_position = @position + dice_value
+    @position = @board.loop_position(pending_position, self)
+  end
+  
+  def pass_go
+    @balance += 200
   end
   
   def handle_square
-    square = @board.return_square(position)
+    square = @board.return_square(@position)
     square.process(self)
   end
   
@@ -55,16 +57,24 @@ class Player
     @balance >= amount
   end
   
+  def deduct_funds(amount)
+    @balance -= amount
+  end
+  
+  def add_funds(amount)
+    @balance += amount
+  end
+  
   def purchase_property(price)
-    @balance -= price
+    deduct_funds(price)
     puts "new balance: #{@balance}"
     #may want to add property to an array of owned properties down the road
   end
   
   def pay_rent(owner, rent)
     if has_funds?(rent)
-      @balance -= rent
-      owner.balance += rent
+      deduct_funds(rent)
+      owner.add_funds(rent)
     else
       bankrupt
     end
