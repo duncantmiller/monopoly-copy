@@ -1,12 +1,20 @@
 
 class Property
   
-  attr_accessor :name, :color, :owner, :mortgaged, :improvements 
+  attr_accessor :name, :color, :owner, :mortgaged, :improvements
   
-  def initialize(name, price, color)
+  def initialize(name, price, color, improvement0, improvement1, improvement2, improvement3, improvement4, improvement5)
     @name = name
     @price = price
-    @color = color   
+    @color = color
+    @improvements_level = 0
+    @improvements = []
+    @improvements << improvement0
+    @improvements << improvement1
+    @improvements << improvement2
+    @improvements << improvement3
+    @improvements << improvement4
+    @improvements << improvement5
   end
 
   def process(player)
@@ -44,6 +52,14 @@ class Property
   end
 
   def assess_rent(player)
+    unless @mortgaged?
+      determine_rent
+      player.pay_rent(@owner)
+    end
+  end
+  
+  def determine_rent
+    @improvements[@improvements_level]
   end
   
 end

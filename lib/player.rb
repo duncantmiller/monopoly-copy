@@ -15,10 +15,10 @@ class Player
     puts roll_dice
     advance_token
     handle_square
-    handle_trading_phase
-    check_win_loss
-    play_round if play_again?
-    cleanup_phase
+    handle_trading_phase #needs to be built
+    check_win_loss #needs to be built
+    play_round if play_again? #needs to be built
+    cleanup_phase #needs to be built
   end
 
   def roll_dice
@@ -51,8 +51,8 @@ class Player
     square.process(self)
   end
   
-  def has_funds?(price)
-    @balance >= price
+  def has_funds?(amount)
+    @balance >= amount
   end
   
   def purchase_property(price)
@@ -60,6 +60,14 @@ class Player
     puts "new balance: #{@balance}"
     #may want to add property to an array of owned properties down the road
   end
-    
-
+  
+  def pay_rent(owner, rent)
+    if has_funds?(rent)
+      @balance -= rent
+      owner.balance += rent
+    else
+      bankrupt
+    end
+  end
+  
 end
