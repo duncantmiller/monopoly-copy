@@ -1,24 +1,24 @@
-
 class Property
   
-  attr_accessor :name, :color, :owner, :mortgaged, :improvements
+  attr_accessor :name, :color, :owner, :mortgaged, :houses, :hotels, :price
   
   def initialize(name, price, color, rent_levels)
     @name = name
     @price = price
     @color = color
-    @improvements = 0
+    @houses = 0
+    @hotels = 0
     @rent_levels = rent_levels
   end
 
   def process(player)
-    puts "Landed on square. This is #{@name}."
     if for_sale?
       offer_property_for_sale(player)
     elsif owned_by?(player)
+      puts "you already own this property"
       return
     else
-      assess_rent(player)        
+      assess_rent(player)     
     end
   end
 
@@ -34,8 +34,8 @@ class Property
     puts "#{@name} is for sale for #{@price}"
     puts "Would you like to buy it (y/n)?"
     answer = gets.chomp
-    if (answer == 'y' && player.has_funds?(@price))
-      player.purchase_property(@price)
+    if (answer == 'y' && player.can_afford?(@price))
+      player.purchase_property(self)
       @owner = player
     else
       auction_property
@@ -46,17 +46,13 @@ class Property
   end
 
   def assess_rent(player)
-    unless @mortgaged?
-      determine_rent
-      player.pay_rent(@owner)
+    unless @mortgaged
+      puts "you owe #{rent}"
+      player.pay_rent(self)
     end
   end
   
-  def determine_rent
-    @rent_levels[@improvements]
-  end
-  
+  def rent
+    @rent_levels[@houses + (@hotels * 5)]
+  end 
 end
-
-
-

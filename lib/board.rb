@@ -10,7 +10,7 @@ class Board
   def set_squares
     n = 0
     40.times do
-      @squares[n] = Property.new("placeholder #{n}", 200, :blue)
+      @squares[n] = Property.new("placeholder #{n}", 200, :blue, [20, 200, 300, 400, 500, 600])
       n += 1
     end
   end
@@ -25,7 +25,7 @@ class Board
   end 
 
   def return_square(position)
-      @squares[position]
+    @squares[position]
   end
 
 end

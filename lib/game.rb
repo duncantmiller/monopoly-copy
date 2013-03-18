@@ -10,7 +10,7 @@ class Game
   end
   
   def create_players
-    @players = [Player.new(self)]
+    @players = [Player.new(self, "mike"), Player.new(self, "beth")]
   end
 
   def play!

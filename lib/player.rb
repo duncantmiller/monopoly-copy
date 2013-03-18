@@ -1,23 +1,28 @@
 class Player
   
-  attr_accessor :position, :balance
+  attr_accessor :position, :balance, :name
   
-  def initialize(game)
+  def initialize(game, name)
     @position = 0
     @doubles_count = 0
     @balance = 1500
     @dice = game.dice
     @board = game.board
+    @name = name
+    @owned_properties = []
   end
   
   def play_round
+    puts "#{@name} is starting round"
     roll_dice
+    puts "#{@name} rolled a #{@dice.value}"
     advance_token
     handle_square
-    handle_trading_phase #needs to be built
-    check_win_loss #needs to be built
-    play_round if play_again? #needs to be built
-    cleanup_phase #needs to be built
+    puts 
+    # handle_trading_phase #needs to be built
+    # check_win_loss #needs to be built
+    # play_round if play_again? #needs to be built
+    # cleanup_phase #needs to be built
   end
 
   def roll_dice
@@ -50,10 +55,12 @@ class Player
   
   def handle_square
     square = @board.return_square(@position)
+    puts "landed on #{square.name}"
     square.process(self)
+    
   end
   
-  def has_funds?(amount)
+  def can_afford?(amount)
     @balance >= amount
   end
   
@@ -65,17 +72,20 @@ class Player
     @balance += amount
   end
   
-  def purchase_property(price)
-    deduct_funds(price)
+  def purchase_property(property)
+    deduct_funds(property.price)
     puts "new balance: #{@balance}"
-    #may want to add property to an array of owned properties down the road
+    @owned_properties << property
   end
   
-  def pay_rent(owner, rent)
-    if has_funds?(rent)
-      deduct_funds(rent)
-      owner.add_funds(rent)
+  def pay_rent(property)
+    if can_afford?(property.rent)
+      deduct_funds(property.rent)
+      puts "After paying rent your balance is: #{@balance}"
+      property.owner.add_funds(property.rent)
+      puts "#{property.owner.name} receives #{property.rent}"
     else
+      puts "your out of money"
       bankrupt
     end
   end
