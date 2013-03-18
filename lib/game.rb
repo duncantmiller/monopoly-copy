@@ -1,14 +1,16 @@
-require_relative 'player'
-
 class Game
+  attr_accessor :dice, :board
+  
   def initialize
+    @current_turn_index = 0
+    @dice = Dice.new
+    @board = Board.new
     create_players
     @players.shuffle
-    @current_turn_index = 0
   end
   
   def create_players
-    @players = [Player.new]
+    @players = [Player.new(self)]
   end
 
   def play!
@@ -29,7 +31,3 @@ class Game
     @players.select { | player | player.won? }.any?
   end
 end
-
-game = Game.new
-puts game.inspect
-game.play!
