@@ -32,3 +32,4 @@ end
 
 game = Game.new
 puts game.inspect
+game.play!
