@@ -1,10 +1,11 @@
 class Player
   
-  attr_accessor :position
+  attr_accessor :position, :balance
   
   def initialize(game)
     @position = 0
     @doubles_count = 0
+    @balance = 1500
     @dice = game.dice
     @board = game.board
   end
@@ -47,7 +48,18 @@ class Player
   
   def handle_square
     square = @board.return_square(position)
-    puts square
+    square.process(self)
   end
+  
+  def has_funds?(price)
+    @balance >= price
+  end
+  
+  def purchase_property(price)
+    @balance -= price
+    puts "new balance: #{@balance}"
+    #may want to add property to an array of owned properties down the road
+  end
+    
 
 end

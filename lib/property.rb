@@ -9,10 +9,10 @@ class Property
     @color = color   
   end
 
-  def play!(player)
+  def process(player)
     puts "Landed on square. This is #{@name}."
     if for_sale?
-      offer_property_for_sale
+      offer_property_for_sale(player)
     elsif owned_by?(player)
       return
     else
@@ -28,9 +28,19 @@ class Property
     player == @owner
   end
 
-
-
-  def offer_property_for_sale
+  def offer_property_for_sale(player)
+    puts "#{@name} is for sale for #{@price}"
+    puts "Would you like to buy it (y/n)?"
+    answer = gets.chomp
+    if (answer == 'y' && player.has_funds?(@price))
+      player.purchase_property(@price)
+      @owner = player
+    else
+      auction_property
+    end
+  end
+  
+  def auction_property
   end
 
   def assess_rent(player)
