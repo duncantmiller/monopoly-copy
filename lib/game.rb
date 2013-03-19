@@ -6,7 +6,7 @@ class Game
     @dice = Dice.new
     @board = Board.new
     create_players
-    @players.shuffle
+    @players.shuffle!
   end
   
   def create_players

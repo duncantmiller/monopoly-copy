@@ -5,6 +5,7 @@ require_relative 'lib/property'
 require_relative 'lib/board'
 
 game = Game.new
+#puts Player.methods
 # puts game.inspect
 game.play!
 

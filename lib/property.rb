@@ -11,11 +11,34 @@ class Property
     @rent_levels = rent_levels
   end
 
+  #View Methods
+  
+  def display_purchase_option
+    puts "This property is for sale for #{@price}.  Would you like to buy it now?"
+  end
+  
+  def display_property_already_owned
+    puts "you already own this property"
+  end
+  
+  def display_rent_owed
+    puts "you owe #{rent}"
+  end
+  
+  #Controller Methods
+
+  def player_input_affirmative?
+    gets.chomp[0].upcase == "Y"
+  end
+
+
+  #Model Methods
+
   def process(player)
     if for_sale?
       offer_property_for_sale(player)
     elsif owned_by?(player)
-      puts "you already own this property"
+      display_property_already_owned
       return
     else
       assess_rent(player)     
@@ -31,15 +54,16 @@ class Property
   end
 
   def offer_property_for_sale(player)
-    puts "#{@name} is for sale for #{@price}"
-    puts "Would you like to buy it (y/n)?"
-    answer = gets.chomp
-    if (answer == 'y' && player.can_afford?(@price))
+    display_purchase_option
+    if player_input_affirmative? && player.can_afford?(@price)
       player.purchase_property(self)
-      @owner = player
     else
       auction_property
     end
+  end
+  
+  def set_owner(player)
+    @owner = player
   end
   
   def auction_property
@@ -47,7 +71,7 @@ class Property
 
   def assess_rent(player)
     unless @mortgaged
-      puts "you owe #{rent}"
+      display_rent_owed
       player.pay_rent(self)
     end
   end

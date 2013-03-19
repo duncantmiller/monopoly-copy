@@ -12,10 +12,44 @@ class Player
     @owned_properties = []
   end
   
-  def play_round
+  # View Methods
+  def display_player_starting_round
     puts "#{@name} is starting round"
-    roll_dice
+  end
+  
+  def display_dice_roll_value
     puts "#{@name} rolled a #{@dice.value}"
+  end
+  
+  def display_passed_go
+    puts "#{@name} passed go and collected $200!"
+  end
+  
+  def display_landed_on_square(square)
+    puts "#{@name} landed on #{square.name}"
+  end
+  
+  def display_new_balance
+    puts "#{@name}'s new balance: #{@balance}"
+  end
+  
+  def display_rent_paid(property)
+    puts "#{@name} paid #{property.rent} in rent to #{property.owner.name}"
+  end
+  
+  def display_player_bankrupt
+    puts "#{@name} is out of money! Wambulance called..."
+  end
+  
+  # Controller Methods
+  
+  
+  # Model Methods
+  
+  def play_round
+    display_player_starting_round
+    roll_dice
+    display_dice_roll_value
     advance_token
     handle_square
     puts 
@@ -50,12 +84,13 @@ class Player
   end
   
   def pass_go
-    @balance += 200
+    display_passed_go
+    add_funds(200)
   end
   
   def handle_square
-    square = @board.return_square(@position)
-    puts "landed on #{square.name}"
+    square = @board.square_at(@position)
+    display_landed_on_square(square)
     square.process(self)
     
   end
@@ -74,20 +109,24 @@ class Player
   
   def purchase_property(property)
     deduct_funds(property.price)
-    puts "new balance: #{@balance}"
+    display_new_balance
+    property.set_owner(self)
     @owned_properties << property
   end
   
   def pay_rent(property)
     if can_afford?(property.rent)
       deduct_funds(property.rent)
-      puts "After paying rent your balance is: #{@balance}"
+      display_rent_paid(property)
+      display_new_balance
       property.owner.add_funds(property.rent)
-      puts "#{property.owner.name} receives #{property.rent}"
     else
-      puts "your out of money"
       bankrupt
     end
+  end
+  
+  def bankrupt
+    display_player_bankrupt
   end
   
 end
