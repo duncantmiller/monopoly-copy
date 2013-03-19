@@ -17,12 +17,16 @@ class Property
     puts "This property is for sale for #{@price}.  Would you like to buy it now?"
   end
   
-  def display_property_already_owned
-    puts "you already own this property"
+  def display_property_already_owned(player)
+    puts "#{player.name} already owns this property"
   end
   
-  def display_rent_owed
-    puts "you owe #{rent}"
+  def display_rent_owed(player)
+    puts "#{player.name} owes #{rent}"
+  end
+  
+  def display_cant_afford(player)
+    puts "#{player.name} can't afford it!"
   end
   
   #Controller Methods
@@ -38,7 +42,7 @@ class Property
     if for_sale?
       offer_property_for_sale(player)
     elsif owned_by?(player)
-      display_property_already_owned
+      display_property_already_owned(player)
       return
     else
       assess_rent(player)     
@@ -52,16 +56,26 @@ class Property
   def owned_by?(player)
     player == @owner
   end
-
+  
   def offer_property_for_sale(player)
-    display_purchase_option
-    if player_input_affirmative? && player.can_afford?(@price)
-      player.purchase_property(self)
+    player.display_current_balance
+    if player.can_afford_at_all?(@price) #does more than return true/false, also makes changes
+      handle_offer(player)
     else
+      display_cant_afford(player)  
       auction_property
     end
   end
   
+  def handle_offer(player)
+    display_purchase_option
+    if player_input_affirmative?
+      player.purchase_property(self)
+    else
+      auction_property
+    end
+  end  
+    
   def set_owner(player)
     @owner = player
   end
@@ -71,7 +85,7 @@ class Property
 
   def assess_rent(player)
     unless @mortgaged
-      display_rent_owed
+      display_rent_owed(player)
       player.pay_rent(self)
     end
   end

@@ -26,23 +26,38 @@ class Player
   end
   
   def display_landed_on_square(square)
-    puts "#{@name} landed on #{square.name}"
+    puts "#{@name} landed on #{square.name}."
   end
   
-  def display_new_balance
-    puts "#{@name}'s new balance: #{@balance}"
+  def display_current_balance
+    puts "#{@name}'s current balance: #{@balance}."
+  end
+  
+  def display_purchased_property(property)
+    puts "#{@name} purchased #{property.name}."
   end
   
   def display_rent_paid(property)
-    puts "#{@name} paid #{property.rent} in rent to #{property.owner.name}"
+    puts "#{@name} paid #{property.rent} in rent to #{property.owner.name}."
   end
   
   def display_player_bankrupt
     puts "#{@name} is out of money! Wambulance called..."
   end
   
-  # Controller Methods
+  def display_cant_afford_without_selling_assets 
+    puts "you can only afford this by selling assets. do you want to sell assets?"
+  end
   
+  def display_need_to_sell_assets
+    puts "You still need to raise more money to afford it.  Which asset 
+    do you want to sell?"
+  end
+  
+  # Controller Methods
+  def player_input_affirmative?
+    gets.chomp[0].upcase == "Y"
+  end
   
   # Model Methods
   
@@ -56,7 +71,11 @@ class Player
     # handle_trading_phase #needs to be built
     # check_win_loss #needs to be built
     # play_round if play_again? #needs to be built
-    # cleanup_phase #needs to be built
+    cleanup_phase
+  end
+  
+  def cleanup_phase
+    @doubles_count = 0
   end
 
   def roll_dice
@@ -99,6 +118,42 @@ class Player
     @balance >= amount
   end
   
+  def can_afford_at_all?(amount) # Needs refactoring
+    if can_afford?(amount)
+      true
+    elsif can_afford_by_selling_assets?(amount)
+      offer_to_sell_assets(amount)
+    else
+      false
+    end
+  end
+  
+  def offer_to_sell_assets(amount)
+    display_cant_afford_without_selling_assets
+    if player_input_affirmative?
+      handle_asset_sale(amount)
+    else
+      false
+    end
+  end
+
+  def handle_asset_sale(amount)
+    assets = []
+    until @balance >= amount
+      display_need_to_sell_assets
+      sell_asset
+    end
+    @balance >= amount
+  end
+  
+  def networth
+    # Calculate value of all properties, improvements, cash, etc.
+  end
+  
+  def can_afford_by_selling_assets?(amount)
+    networth >= amount
+  end
+  
   def deduct_funds(amount)
     @balance -= amount
   end
@@ -109,17 +164,18 @@ class Player
   
   def purchase_property(property)
     deduct_funds(property.price)
-    display_new_balance
     property.set_owner(self)
     @owned_properties << property
+    display_purchased_property(property)
+    display_current_balance
   end
   
   def pay_rent(property)
     if can_afford?(property.rent)
       deduct_funds(property.rent)
-      display_rent_paid(property)
-      display_new_balance
       property.owner.add_funds(property.rent)
+      display_rent_paid(property)
+      display_current_balance
     else
       bankrupt
     end
