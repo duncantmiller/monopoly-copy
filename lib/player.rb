@@ -111,8 +111,31 @@ class Player
     square = @board.square_at(@position)
     display_landed_on_square(square)
     square.process(self)
-    
   end
+  
+  ### MARK METHODS 
+  
+  def buy_property(property)
+    # code to handle transfer of ownership
+  end
+
+  def sell_assets_phase(price)
+    done = false
+    until can_afford?(price) || done do
+      puts "Would you like to sell assets?"
+      done = player_input_affirmative? #negative?
+      display_sell_assets_menu unless done
+    end
+  end
+
+  def bankrupt
+    sell_assets_phase(0)
+    if player.balance <= 0
+      # game over, man, game over!
+    end
+  end
+  
+  ### END MARK METHODS
   
   def can_afford?(amount)
     @balance >= amount

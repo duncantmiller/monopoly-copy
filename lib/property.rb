@@ -14,7 +14,7 @@ class Property
   #View Methods
   
   def display_purchase_option
-    puts "This property is for sale for #{@price}.  Would you like to buy it now?"
+    puts "#{@name} property is for sale for #{@price}.  Would you like to buy it now?"
   end
   
   def display_property_already_owned(player)
@@ -25,8 +25,12 @@ class Property
     puts "#{player.name} owes #{rent}"
   end
   
-  def display_cant_afford(player)
-    puts "#{player.name} can't afford it!"
+  def display_not_buying(player)
+    puts "#{player.name} chose not to buy this property or can't afford it."
+  end
+  
+  def display_auction_message
+    puts "property is going to auction."
   end
   
   #Controller Methods
@@ -59,28 +63,27 @@ class Property
   
   def offer_property_for_sale(player)
     player.display_current_balance
-    if player.can_afford_at_all?(@price) #does more than return true/false, also makes changes
-      handle_offer(player)
+    player.sell_assets_phase(price)
+    if player.can_afford?(price) && wants_to_buy?
+      player.purchase_property(self)
     else
-      display_cant_afford(player)  
+      display_not_buying(player)  
       auction_property
     end
   end
   
-  def handle_offer(player)
-    display_purchase_option
-    if player_input_affirmative?
-      player.purchase_property(self)
-    else
-      auction_property
-    end
-  end  
+  def wants_to_buy?
+    display_purchase_option()
+    player_input_affirmative?
+  end
+  
     
   def set_owner(player)
     @owner = player
   end
   
   def auction_property
+    display_auction_message
   end
 
   def assess_rent(player)
