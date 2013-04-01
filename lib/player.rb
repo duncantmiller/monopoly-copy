@@ -1,6 +1,6 @@
 class Player
   
-  attr_accessor :position, :balance, :name
+  attr_accessor :position, :balance, :name, :won, :jail_count
   
   def initialize(game, name)
     @position = 0
@@ -10,6 +10,9 @@ class Player
     @board = game.board
     @name = name
     @owned_properties = []
+    @bankrupt_status = false
+    @won = false
+    @jail_count = 0
   end
   
   # View Methods
@@ -59,19 +62,53 @@ class Player
     gets.chomp[0].upcase == "Y"
   end
   
+  def player_input_negative?
+    gets.chomp[0].upcase == "N"
+  end  
+  
   # Model Methods
   
   def play_round
     display_player_starting_round
     roll_dice
     display_dice_roll_value
-    advance_token
-    handle_square
-    puts 
-    # handle_trading_phase #needs to be built
-    # check_win_loss #needs to be built
-    # play_round if play_again? #needs to be built
-    cleanup_phase
+    if in_jail? && !@dice.doubles
+        @jail_count += 1
+        if @jail_count >= 3
+          deduct_funds(50)
+          @jail_count = 0
+        end
+    else
+    # handle_jail if in_jail?
+    # unless in_jail?
+      advance_token
+      handle_square
+      puts "player balance: #{@balance}"
+      puts "player owns: #{@owned_properties.size}"
+      # handle_trading_phase #needs to be built
+      play_round if play_again? #needs to be built
+      cleanup_phase
+    end
+  end
+  
+  # def handle_jail
+  #   if !@dice.doubles
+  #       @jail_count += 1
+  #       if @jail_count >= 3
+  #         deduct_funds(50)
+  #         @jail_count = 0
+  #       end
+  #   else  
+  #     @jail_count = 0
+  #   end 
+  # end
+  
+  def play_again?
+    if @doubles_count > 0 && @doubles_count < 3
+      true
+    else
+      false
+    end
   end
   
   def cleanup_phase
@@ -86,7 +123,16 @@ class Player
   end
   
   def won?
-    false
+    @won
+  end
+  
+  def in_jail?
+    @jail_count > 1
+  end
+  
+  def go_to_jail
+    @jail_count = 1
+    @position = @board.squares[10].key #need to remove hard coding
   end
 
   def advance_token
@@ -123,17 +169,17 @@ class Player
     done = false
     until can_afford?(price) || done do
       puts "Would you like to sell assets?"
-      done = player_input_affirmative? #negative?
+      done = player_input_negative? #changed from Marc's original version player_input_affirmative?
       display_sell_assets_menu unless done
     end
   end
 
-  def bankrupt
-    sell_assets_phase(0)
-    if player.balance <= 0
-      # game over, man, game over!
-    end
-  end
+  # def bankrupt
+  #   sell_assets_phase(0)
+  #   if player.balance <= 0
+  #     # game over, man, game over!
+  #   end
+  # end
   
   ### END MARK METHODS
   
@@ -204,8 +250,13 @@ class Player
     end
   end
   
+  def is_bankrupt?
+    @bankrupt_status == true
+  end
+  
   def bankrupt
     display_player_bankrupt
+    @bankrupt_status = true
   end
   
 end

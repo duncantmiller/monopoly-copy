@@ -10,9 +10,10 @@ class Board
     @squares = {}
     n = 0
     40.times do
-      @squares[n] = Property.new("placeholder #{n}", 200, :blue, [20, 200, 300, 400, 500, 600])
+      @squares[n] = Property.new("placeholder #{n}", 200, :blue, [210, 200, 300, 400, 500, 600])
       n += 1
     end
+    @squares[10] = SpecialSquare.new("jail")
   end
   
   def loop_position(position, player)

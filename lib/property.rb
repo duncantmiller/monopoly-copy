@@ -95,5 +95,6 @@ class Property
   
   def rent
     @rent_levels[@houses + (@hotels * 5)]
+    # if monopoly double rent
   end 
 end
