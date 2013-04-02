@@ -6,12 +6,12 @@ class Dice
   end
   
   def value
-    10
-    # @die1 + @die2
+    @die1 + @die2
   end
   
   def doubles?
-    @die1 == @die2
+    true
+    #@die1 == @die2
   end
   
 end

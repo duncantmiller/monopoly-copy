@@ -17,7 +17,7 @@ class Player
   
   # View Methods
   def display_player_starting_round
-    puts "#{@name} is starting round"
+    puts "#{@name} is starting round, balance is #{@balance} and properties owned is #{@owned_properties.size}"
   end
   
   def display_dice_roll_value
@@ -57,6 +57,10 @@ class Player
     do you want to sell?"
   end
   
+  def display_go_to_jail_message
+    puts "You're going to jail!"
+  end
+  
   # Controller Methods
   def player_input_affirmative?
     gets.chomp[0].upcase == "Y"
@@ -72,36 +76,39 @@ class Player
     display_player_starting_round
     roll_dice
     display_dice_roll_value
-    if in_jail? && !@dice.doubles
-        @jail_count += 1
-        if @jail_count >= 3
-          deduct_funds(50)
-          @jail_count = 0
-        end
+    if third_double?
+      go_to_jail 
+    elsif in_jail?
+      play_jail_round
     else
-    # handle_jail if in_jail?
-    # unless in_jail?
-      advance_token
-      handle_square
-      puts "player balance: #{@balance}"
-      puts "player owns: #{@owned_properties.size}"
-      # handle_trading_phase #needs to be built
-      play_round if play_again? #needs to be built
-      cleanup_phase
+      finish_round
     end
+    cleanup_phase
   end
   
-  # def handle_jail
-  #   if !@dice.doubles
-  #       @jail_count += 1
-  #       if @jail_count >= 3
-  #         deduct_funds(50)
-  #         @jail_count = 0
-  #       end
-  #   else  
-  #     @jail_count = 0
-  #   end 
-  # end
+  def third_double?
+    @doubles_count == 3
+  end
+  
+  def finish_round
+    advance_token
+    handle_square
+    # handle_trading_phase #needs to be built
+    play_round if play_again?
+  end
+  
+  def play_jail_round  
+    if @dice.doubles
+      @jail_count = 0
+      finish_round
+    else
+      @jail_count += 1
+      if @jail_count >= 3
+        deduct_funds(50)
+        @jail_count = 0
+      end
+    end 
+  end
   
   def play_again?
     if @doubles_count > 0 && @doubles_count < 3
@@ -117,9 +124,7 @@ class Player
 
   def roll_dice
     @dice.roll!
-    if @dice.doubles?
-      @doubles_count += 1
-    end
+    @doubles_count += 1 if @dice.doubles?
   end
   
   def won?
@@ -131,8 +136,9 @@ class Player
   end
   
   def go_to_jail
+    display_go_to_jail_message
     @jail_count = 1
-    @position = @board.squares[10].key #need to remove hard coding
+    @position = 10 #@board.squares[10].key #need to remove hard coding
   end
 
   def advance_token
