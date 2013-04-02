@@ -6,6 +6,7 @@ class Player
     @position = 0
     @doubles_count = 0
     @balance = 1500
+    @game = game
     @dice = game.dice
     @board = game.board
     @name = name
@@ -61,6 +62,34 @@ class Player
     puts "You're going to jail!"
   end
   
+  def display_bankrupt_warning
+    puts "You have to continue selling assets until you can affort rent or you will go bankrupt"
+  end
+  
+  def display_property_menu
+    puts "type the number of the property you would like to trade"
+    @owned_properties.each_with_index do |property, index|
+      puts "#{index}: #{property.name}"
+    end
+  end
+  
+  def display_price_requested
+    puts "type in the price you would like for this property"
+  end
+  
+  def display_choose_player
+    puts "type the number of the player you would like to trade with"
+    @game.players.each_with_index do |player, index|
+      puts "#{index}: #{player.name}"
+    end
+  end
+  
+  def display_offer_message(offering, requesting, player)
+    puts "#{self.name} is offering to trade with #{player.name}"
+    puts "they are offering #{offering} for #{requesting}"
+    puts "does #{player.name} accept? (Y/N)"
+  end
+  
   # Controller Methods
   def player_input_affirmative?
     gets.chomp[0].upcase == "Y"
@@ -68,11 +97,16 @@ class Player
   
   def player_input_negative?
     gets.chomp[0].upcase == "N"
-  end  
+  end
+  
+  def player_input_integer
+    gets.chomp.to_i
+  end
   
   # Model Methods
   
   def play_round
+    puts "position of jail is #{@board.position_at(:jail)}"
     display_player_starting_round
     roll_dice
     display_dice_roll_value
@@ -93,8 +127,29 @@ class Player
   def finish_round
     advance_token
     handle_square
-    # handle_trading_phase #needs to be built
+    handle_trading_phase #needs to be built
     play_round if play_again?
+  end
+  
+  def handle_trading_phase
+    display_property_menu
+    offering = @owned_properties[player_input_integer]
+    display_price_requested
+    requesting = player_input_integer
+    display_choose_player
+    player = @game.players[player_input_integer]
+    offer_trade(offering, requesting, player)
+  end
+  
+  def offer_trade(offering, requesting, player)
+    display_offer_message(offering, requesting, player)
+    if player_input_affirmative?
+      handle_trade(offering, requesting, player)
+    end
+  end
+  
+  def handle_trade(offering, requesting, player)
+    
   end
   
   def play_jail_round  
@@ -138,15 +193,11 @@ class Player
   def go_to_jail
     display_go_to_jail_message
     @jail_count = 1
-    @position = 10 #@board.squares[10].key #need to remove hard coding
+    @position = @board.position_at(:jail)
   end
 
   def advance_token
-    if @doubles_count == 3
-      advance_to(:jail)
-    else
-      advance_by(@dice.value)    
-    end
+    advance_by(@dice.value)    
   end
 
   def advance_by(dice_value) 
@@ -193,41 +244,23 @@ class Player
     @balance >= amount
   end
   
-  def can_afford_at_all?(amount) # Needs refactoring
-    if can_afford?(amount)
-      true
-    elsif can_afford_by_selling_assets?(amount)
-      offer_to_sell_assets(amount)
-    else
-      false
-    end
-  end
-  
-  def offer_to_sell_assets(amount)
-    display_cant_afford_without_selling_assets
-    if player_input_affirmative?
-      handle_asset_sale(amount)
-    else
-      false
-    end
-  end
-
-  def handle_asset_sale(amount)
-    assets = []
-    until @balance >= amount
-      display_need_to_sell_assets
-      sell_asset
-    end
-    @balance >= amount
-  end
-  
-  def networth
-    # Calculate value of all properties, improvements, cash, etc.
-  end
-  
-  def can_afford_by_selling_assets?(amount)
-    networth >= amount
-  end
+  # def offer_to_sell_assets(amount)
+  #   display_cant_afford_without_selling_assets
+  #   if player_input_affirmative?
+  #     handle_asset_sale(amount)
+  #   else
+  #     false
+  #   end
+  # end
+  # 
+  # def handle_asset_sale(amount)
+  #   assets = []
+  #   until @balance >= amount
+  #     display_need_to_sell_assets
+  #     sell_asset
+  #   end
+  #   @balance >= amount
+  # end
   
   def deduct_funds(amount)
     @balance -= amount
@@ -246,12 +279,15 @@ class Player
   end
   
   def pay_rent(property)
+    sell_assets_phase(property.rent)
     if can_afford?(property.rent)
       deduct_funds(property.rent)
       property.owner.add_funds(property.rent)
       display_rent_paid(property)
       display_current_balance
     else
+      display_bankrupt_warning
+      sell_assets_phase(property.rent)
       bankrupt
     end
   end

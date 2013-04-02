@@ -1,5 +1,5 @@
 class Game
-  attr_accessor :dice, :board
+  attr_accessor :dice, :board, :players
   
   def initialize
     @current_turn_index = 0
