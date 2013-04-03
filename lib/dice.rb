@@ -6,7 +6,8 @@ class Dice
   end
   
   def value
-    @die1 + @die2
+    1
+    #@die1 + @die2
   end
   
   def doubles?

@@ -1,16 +1,16 @@
 class Property
   
-  attr_accessor :name, :color, :owner, :mortgaged, :houses, :hotels, :price
+  attr_accessor :name, :color, :owner, :mortgaged, :improvements, :price
   
-  def initialize(name, price, color, rent_levels, improvements_cost)
+  def initialize(name, price, color, rent_levels, improvements_cost, board)
     @name = name
     @price = price
     @color = color
-    @houses = 0
-    @hotels = 0
+    @improvements = 0
     @rent_levels = rent_levels
     @improvements_cost = improvements_cost
     @mortgaged = false
+    @board = board
   end
 
   #View Methods
@@ -85,8 +85,7 @@ class Property
   def wants_to_buy?
     display_purchase_option()
     player_input_affirmative?
-  end
-  
+  end 
     
   def set_owner(player)
     @owner = player
@@ -105,8 +104,27 @@ class Property
     end
   end
   
+  def has_improvements?
+    @improvements > 0
+  end
+  
+  def sale_value
+    @improvements_cost / 2
+  end
+  
+  def sell_improvements(player, number_sold)
+    @improvements_count -= number_sold
+    player.add_funds(number_sold * sale_value)
+  end
+  
+  def is_monopoly?
+    colored_squares = @board.squares.select {|key, square| square.is_a?(Property) && square.color == @color}
+    owned_squares = colored_squares.select {|key, square| square.is_a?(Property) && square.owner == @owner}
+    colored_squares.count == owned_squares.count
+  end
+  
   def rent
-    @rent_levels[@houses + (@hotels * 5)]
+    @rent_levels[@improvements]
     # if monopoly double rent - needs to be built
   end 
 end

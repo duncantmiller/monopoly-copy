@@ -118,10 +118,26 @@ class Player
   
   def display_player_options_menu
     puts "------------Options Menu-------------"
-    puts "Type the number of the option you want:"
+    puts "Type the number of the option you want (or press enter to skip):"
     puts "1: Trade with other players."
     puts "2: Mortgage properties."
     puts "3: Sell houses and/or hotels to bank."
+    puts "4: Purchase improvements" if has_monopolies?
+  end
+  
+  def display_buy_improvements_menu
+    puts "------------Sell Improvements Menu-------------"
+    puts "Type the number of the property for which you would like to buy improvements."
+    owned_properties.each do |key, property|
+      if property.is_monopoly?
+        puts "#{key}: #{property.name}, existing improvements: #{property.improvements}, 
+        improvements cost: #{property.improvements_cost} each."
+      end
+    end    
+  end
+  
+  def display_buy_improvements_count
+    
   end
   
   def display_sell_trade_mortgage
@@ -130,6 +146,22 @@ class Player
   
   def display_final_bankrupt_warning
     puts "Are you sure? You'll be declared bankrupt unless you raise more money. (Y/N)"
+  end
+  
+  def display_sell_improvements_menu
+    puts "------------Sell Improvements Menu-------------"
+    puts "Type the number of the property for which you would like to sell improvements."
+    owned_properties.each do |key, property|
+      if property.has_improvements?
+        puts "#{key}: #{property.name}, improvements: #{property.improvements}, sale value: 
+        #{property.sale_value}"
+      end
+    end
+  end
+  
+  def display_sell_improvements_count(property)
+    puts "There are #{property.improvements} improvements for this property."
+    puts "How many do you want to sell?"
   end
   
   # Controller Methods
@@ -179,6 +211,10 @@ class Player
     @doubles_count == 3
   end
   
+  def has_monopolies?
+    @board.squares.select {|key, square| square.is_a?(Property) && square.is_monopoly?}.any?
+  end
+
   def finish_round
     advance_token
     handle_square
@@ -320,8 +356,16 @@ class Player
     when 2
       handle_mortgaging_phase
     when 3
-      handle_sell_improvements_phase #not done yet
+      handle_sell_improvements_phase
     end
+  end
+  
+  def handle_sell_improvements_phase
+    display_sell_improvements_menu
+    property = owned_properties[player_input_integer]
+    display_sell_improvements_count(property)
+    property.sell_improvements(self, player_input_integer)
+    display_current_balance
   end
   
   def can_afford?(amount)

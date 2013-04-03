@@ -8,9 +8,13 @@ class Board
   #placeholder objects for now - will probably read in a yaml file with square details
   def set_squares
     @squares = {}
-    n = 0
-    40.times do
-      @squares[n] = Property.new("placeholder #{n}", 200, :blue, [210, 200, 300, 400, 500, 600], 50)
+    n = 1
+    2.times do
+      @squares[n] = Property.new("blue placeholder #{n}", 200, :blue, [210, 200, 300, 400, 500, 600], 50, self)
+      n += 1
+    end
+    37.times do
+      @squares[n] = Property.new("red placeholder #{n}", 200, :red, [210, 200, 300, 400, 500, 600], 50, self)
       n += 1
     end
     @squares[10] = SpecialSquare.new(:jail)
