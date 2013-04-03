@@ -10,7 +10,7 @@ class Dice
   end
   
   def doubles?
-    true
+    true # for testing only
     #@die1 == @die2
   end
   

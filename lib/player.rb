@@ -54,7 +54,7 @@ class Player
   end
   
   def display_cant_afford_without_selling_assets 
-    puts "you can only afford this by selling assets. do you want to sell assets?"
+    puts "You can only afford this by selling assets. Do you want to sell assets? (Y/N)"
   end
   
   def display_need_to_sell_assets
@@ -71,20 +71,23 @@ class Player
   end
   
   def display_property_menu
-    puts "type the number of the property you would like to trade"
+    puts "Type the number of the property you would like to trade."
     owned_properties.each do |key, property|
       puts "#{key}: #{property.name}"
     end
   end
   
   def display_price_requested
-    puts "type in the price you would like for this property"
+    puts "Type in the price you would like for this property."
   end
   
   def display_choose_player
-    puts "type the number of the player you would like to trade with"
+    puts "------------Players-------------"
+    puts "Type the number of the player you would like to trade with."
     @game.players.each_with_index do |player, index|
-      puts "#{index}: #{player.name}"
+      unless player == self
+        puts "#{index}: #{player.name}"
+      end
     end
   end
   
@@ -95,8 +98,8 @@ class Player
   end
   
   def display_offer_completed(offering, requesting, player)
-    puts "#{self.name} completed trade with   #{player.name}."
-    puts "they traded #{offering.name} for #{requesting}."
+    puts "#{self.name} completed trade with #{player.name}."
+    puts "They traded #{offering.name} for #{requesting}."
   end
   
   def display_trading_option
@@ -104,7 +107,8 @@ class Player
   end
   
   def display_mortgage_menu
-    puts "type the number of the property you would like to mortgage"
+    puts "------------Mortgage Properties-------------"
+    puts "Type the number of the property you would like to mortgage."
     owned_properties.each do |key, property|
       unless property.mortgaged == true
         puts "#{key}: #{property.name}"
@@ -112,11 +116,20 @@ class Player
     end
   end
   
-  def display_raise_money_options
-    puts "type the number of the option you would like to do:"
+  def display_player_options_menu
+    puts "------------Options Menu-------------"
+    puts "Type the number of the option you want:"
     puts "1: Trade with other players."
     puts "2: Mortgage properties."
     puts "3: Sell houses and/or hotels to bank."
+  end
+  
+  def display_sell_trade_mortgage
+    puts "Would you like to sell/ trade assets or mortgage properties? (Y/N)"
+  end
+  
+  def display_final_bankrupt_warning
+    puts "Are you sure? You'll be declared bankrupt unless you raise more money. (Y/N)"
   end
   
   # Controller Methods
@@ -133,15 +146,6 @@ class Player
   end
   
   # Model Methods
-  
-  # def owned_property
-  #   property_names = []
-  #  @board.squares.select {|key, square| square.is_a?(Property) && square.owner == self}
-  #   owned_properties.each do |property|
-  #     property_names << property[1].name
-  #   end
-  #   property_names
-  # end
   
   def owned_properties
     @board.squares.select {|key, square| square.is_a?(Property) && square.owner == self}
@@ -178,7 +182,7 @@ class Player
   def finish_round
     advance_token
     handle_square
-    #handle_trading_phase
+    player_options_menu
     play_round if play_again? && @bankrupt_status == false
   end
   
@@ -287,12 +291,6 @@ class Player
     display_landed_on_square(square)
     square.process(self)
   end
-  
-  ### MARK METHODS 
-  
-  def buy_property(property)
-    # code to handle transfer of ownership
-  end
 
   def raise_money_phase(price, optional = true)
     done = false
@@ -300,21 +298,21 @@ class Player
       display_bankrupt_warning
     end
     until can_afford?(price) || done do
-      puts "Would you like to sell/ trade assets or mortgage properties?"
+      display_sell_trade_mortgage
       if player_input_negative?
         if optional
           done = true
         else
-          puts "Are you sure? You'll be declared bankrupt unless you raise more money."
+          display_final_bankrupt_warning
           done = player_input_affirmative?
         end        
       end
-      handle_raise_money_phase unless done
+      player_options_menu unless done
     end
   end
   
-  def handle_raise_money_phase
-    display_raise_money_options
+  def player_options_menu
+    display_player_options_menu
     selection = player_input_integer
     case selection
     when 1
@@ -325,37 +323,10 @@ class Player
       handle_sell_improvements_phase #not done yet
     end
   end
-
-  # def bankrupt
-  #   sell_assets_phase(0)
-  #   if player.balance <= 0
-  #     # game over, man, game over!
-  #   end
-  # end
-  
-  ### END MARK METHODS
   
   def can_afford?(amount)
     @balance >= amount
   end
-  
-  # def offer_to_sell_assets(amount)
-  #   display_cant_afford_without_selling_assets
-  #   if player_input_affirmative?
-  #     handle_asset_sale(amount)
-  #   else
-  #     false
-  #   end
-  # end
-  # 
-  # def handle_asset_sale(amount)
-  #   assets = []
-  #   until @balance >= amount
-  #     display_need_to_sell_assets
-  #     sell_asset
-  #   end
-  #   @balance >= amount
-  # end
   
   def deduct_funds(amount)
     @balance -= amount
@@ -382,8 +353,6 @@ class Player
       display_current_balance
     else
       bankrupt!
-      #display_bankrupt_warning
-      #pay_rent(property)
     end
   end
   

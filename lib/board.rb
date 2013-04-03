@@ -5,7 +5,7 @@ class Board
     set_squares
   end
   
-  #placeholder objects for now
+  #placeholder objects for now - will probably read in a yaml file with square details
   def set_squares
     @squares = {}
     n = 0

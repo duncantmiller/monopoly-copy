@@ -41,15 +41,13 @@ class Property
   
   def display_property_is_mortgage
     puts "This property is mortgaged, no rent is due."
-  end
-  
+  end 
   
   #Controller Methods
 
   def player_input_affirmative?
     gets.chomp[0].upcase == "Y"
   end
-
 
   #Model Methods
 
@@ -109,6 +107,6 @@ class Property
   
   def rent
     @rent_levels[@houses + (@hotels * 5)]
-    # if monopoly double rent
+    # if monopoly double rent - needs to be built
   end 
 end
