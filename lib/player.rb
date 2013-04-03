@@ -18,7 +18,10 @@ class Player
   
   # View Methods
   def display_player_starting_round
-    puts "#{@name} is starting round, balance is #{@balance} and properties owned is #{owned_properties.size}"
+    puts "----------------------NEW ROUND---------------------------"
+    puts "#{self.name} owns: "
+    puts "#{@name} is starting round, balance is #{@balance} and properties owned is:"
+    puts "#{owned_property_names}"
   end
   
   def display_dice_roll_value
@@ -122,22 +125,26 @@ class Player
     puts "1: Trade with other players."
     puts "2: Mortgage properties."
     puts "3: Sell houses and/or hotels to bank."
-    puts "4: Purchase improvements" if has_monopolies?
+    if has_monopolies?
+      puts "4: Purchase improvements"
+    end
   end
   
   def display_buy_improvements_menu
-    puts "------------Sell Improvements Menu-------------"
+    puts "------------Buy Improvements Menu-------------"
     puts "Type the number of the property for which you would like to buy improvements."
     owned_properties.each do |key, property|
       if property.is_monopoly?
-        puts "#{key}: #{property.name}, existing improvements: #{property.improvements}, 
+        puts "#{key}: #{property.name}, existing improvements: #{property.improvements_count}, 
         improvements cost: #{property.improvements_cost} each."
       end
     end    
   end
   
-  def display_buy_improvements_count
-    
+  def display_buy_improvements_count(property)
+    puts "You selected #{property.name}, existing improvements: #{property.improvements_count}, 
+    improvements cost: #{property.improvements_cost} each."
+    puts "How many do you improvements want to buy?"
   end
   
   def display_sell_trade_mortgage
@@ -151,16 +158,23 @@ class Player
   def display_sell_improvements_menu
     puts "------------Sell Improvements Menu-------------"
     puts "Type the number of the property for which you would like to sell improvements."
-    owned_properties.each do |key, property|
-      if property.has_improvements?
-        puts "#{key}: #{property.name}, improvements: #{property.improvements}, sale value: 
-        #{property.sale_value}"
+    if owned_properties
+      has_properties = false
+      owned_properties.each do |key, property|
+        if property.has_improvements?
+          puts "#{key}: #{property.name}, improvements: #{property.improvements_count}, sale value: 
+          #{property.sale_value}"
+          has_properties = true
+        end
       end
+      puts "Sorry none of your properties have improvements to sell (press enter to continue)." unless has_properties
+    else
+      puts "Sorry you don't own any properties (press enter to continue)."
     end
   end
   
   def display_sell_improvements_count(property)
-    puts "There are #{property.improvements} improvements for this property."
+    puts "There are #{property.improvements_count} improvements for this property."
     puts "How many do you want to sell?"
   end
   
@@ -186,14 +200,12 @@ class Player
   def owned_property_names
     names = []
     owned_properties.each do |key, property|
-      names << property.name
+      names << [property.name, "improvments: #{property.improvements_count}"]
     end
     names
   end
   
   def play_round
-    puts "----------------------NEW ROUND---------------------------"
-    puts "#{self.name} owns: #{owned_property_names}"
     display_player_starting_round
     roll_dice
     display_dice_roll_value
@@ -212,7 +224,8 @@ class Player
   end
   
   def has_monopolies?
-    @board.squares.select {|key, square| square.is_a?(Property) && square.is_monopoly?}.any?
+    result = @board.squares.select {|key, square| square.is_a?(Property) && square.is_monopoly?}.any?
+    result
   end
 
   def finish_round
@@ -357,14 +370,27 @@ class Player
       handle_mortgaging_phase
     when 3
       handle_sell_improvements_phase
+    when 4
+      handle_buy_improvements_phase
     end
+  end
+  
+  def handle_buy_improvements_phase
+    display_buy_improvements_menu
+    property = owned_properties[player_input_integer]
+    display_buy_improvements_count(property)
+    property.buy_improvements(self, player_input_integer)
+    display_current_balance
   end
   
   def handle_sell_improvements_phase
     display_sell_improvements_menu
-    property = owned_properties[player_input_integer]
-    display_sell_improvements_count(property)
-    property.sell_improvements(self, player_input_integer)
+    if player_input_integer
+      property = owned_properties[player_input_integer]
+      display_sell_improvements_count(property)
+      property.sell_improvements(self, player_input_integer)
+      
+    end
     display_current_balance
   end
   
