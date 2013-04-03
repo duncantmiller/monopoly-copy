@@ -2,27 +2,33 @@ class Property
   
   attr_accessor :name, :color, :owner, :mortgaged, :houses, :hotels, :price
   
-  def initialize(name, price, color, rent_levels)
+  def initialize(name, price, color, rent_levels, improvements_cost)
     @name = name
     @price = price
     @color = color
     @houses = 0
     @hotels = 0
     @rent_levels = rent_levels
+    @improvements_cost = improvements_cost
+    @mortgaged = false
   end
 
   #View Methods
   
   def display_purchase_option
-    puts "#{@name} property is for sale for #{@price}.  Would you like to buy it now?"
+    puts "Would you like to buy it now?"
+  end
+  
+  def display_property_info
+    puts "#{@name} property is for sale for #{@price}."
   end
   
   def display_property_already_owned(player)
-    puts "#{player.name} already owns this property"
+    puts "#{player.name} already owns this property."
   end
   
   def display_rent_owed(player)
-    puts "#{player.name} owes #{rent}"
+    puts "#{player.name} owes #{rent}."
   end
   
   def display_not_buying(player)
@@ -30,8 +36,13 @@ class Property
   end
   
   def display_auction_message
-    puts "property is going to auction."
+    puts "Property is going to auction."
   end
+  
+  def display_property_is_mortgage
+    puts "This property is mortgaged, no rent is due."
+  end
+  
   
   #Controller Methods
 
@@ -63,7 +74,8 @@ class Property
   
   def offer_property_for_sale(player)
     player.display_current_balance
-    player.sell_assets_phase(price)
+    display_property_info
+    player.raise_money_phase(price)
     if player.can_afford?(price) && wants_to_buy?
       player.purchase_property(self)
     else
@@ -87,7 +99,9 @@ class Property
   end
 
   def assess_rent(player)
-    unless @mortgaged
+    if @mortgaged
+      display_property_is_mortgage
+    else
       display_rent_owed(player)
       player.pay_rent(self)
     end

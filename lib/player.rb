@@ -10,7 +10,7 @@ class Player
     @dice = game.dice
     @board = game.board
     @name = name
-    @owned_properties = []
+    #@owned_properties = []
     @bankrupt_status = false
     @won = false
     @jail_count = 0
@@ -18,7 +18,7 @@ class Player
   
   # View Methods
   def display_player_starting_round
-    puts "#{@name} is starting round, balance is #{@balance} and properties owned is #{@owned_properties.size}"
+    puts "#{@name} is starting round, balance is #{@balance} and properties owned is #{owned_properties.size}"
   end
   
   def display_dice_roll_value
@@ -49,6 +49,10 @@ class Player
     puts "#{@name} is out of money! Wambulance called..."
   end
   
+  def display_cant_afford(player)
+    puts "#{player.name} can't afford this."
+  end
+  
   def display_cant_afford_without_selling_assets 
     puts "you can only afford this by selling assets. do you want to sell assets?"
   end
@@ -63,13 +67,13 @@ class Player
   end
   
   def display_bankrupt_warning
-    puts "You have to continue selling assets until you can affort rent or you will go bankrupt"
+    puts "You have to continue selling assets until you can afford rent or you will go bankrupt."
   end
   
   def display_property_menu
     puts "type the number of the property you would like to trade"
-    @owned_properties.each_with_index do |property, index|
-      puts "#{index}: #{property.name}"
+    owned_properties.each do |key, property|
+      puts "#{key}: #{property.name}"
     end
   end
   
@@ -85,9 +89,34 @@ class Player
   end
   
   def display_offer_message(offering, requesting, player)
-    puts "#{self.name} is offering to trade with #{player.name}"
-    puts "they are offering #{offering} for #{requesting}"
+    puts "#{self.name} is offering to trade with #{player.name}."
+    puts "they are offering #{offering.name} for #{requesting}"
     puts "does #{player.name} accept? (Y/N)"
+  end
+  
+  def display_offer_completed(offering, requesting, player)
+    puts "#{self.name} completed trade with   #{player.name}."
+    puts "they traded #{offering.name} for #{requesting}."
+  end
+  
+  def display_trading_option
+    puts "Would you like to sell any properties to other players?"
+  end
+  
+  def display_mortgage_menu
+    puts "type the number of the property you would like to mortgage"
+    owned_properties.each do |key, property|
+      unless property.mortgaged == true
+        puts "#{key}: #{property.name}"
+      end
+    end
+  end
+  
+  def display_raise_money_options
+    puts "type the number of the option you would like to do:"
+    puts "1: Trade with other players."
+    puts "2: Mortgage properties."
+    puts "3: Sell houses and/or hotels to bank."
   end
   
   # Controller Methods
@@ -105,8 +134,30 @@ class Player
   
   # Model Methods
   
+  # def owned_property
+  #   property_names = []
+  #  @board.squares.select {|key, square| square.is_a?(Property) && square.owner == self}
+  #   owned_properties.each do |property|
+  #     property_names << property[1].name
+  #   end
+  #   property_names
+  # end
+  
+  def owned_properties
+    @board.squares.select {|key, square| square.is_a?(Property) && square.owner == self}
+  end
+  
+  def owned_property_names
+    names = []
+    owned_properties.each do |key, property|
+      names << property.name
+    end
+    names
+  end
+  
   def play_round
-    puts "position of jail is #{@board.position_at(:jail)}"
+    puts "----------------------NEW ROUND---------------------------"
+    puts "#{self.name} owns: #{owned_property_names}"
     display_player_starting_round
     roll_dice
     display_dice_roll_value
@@ -127,18 +178,32 @@ class Player
   def finish_round
     advance_token
     handle_square
-    handle_trading_phase #needs to be built
-    play_round if play_again?
+    #handle_trading_phase
+    play_round if play_again? && @bankrupt_status == false
+  end
+  
+  def handle_mortgaging_phase
+    display_mortgage_menu
+    selected_property = owned_properties[player_input_integer]
+    mortgage(selected_property)
+  end
+  
+  def mortgage(property)
+    property.mortgaged = true
+    add_funds(property.price / 2)
   end
   
   def handle_trading_phase
-    display_property_menu
-    offering = @owned_properties[player_input_integer]
-    display_price_requested
-    requesting = player_input_integer
-    display_choose_player
-    player = @game.players[player_input_integer]
-    offer_trade(offering, requesting, player)
+    display_trading_option
+    if player_input_affirmative?
+      display_property_menu
+      offering = owned_properties[player_input_integer]
+      display_price_requested
+      requesting = player_input_integer
+      display_choose_player
+      player = @game.players[player_input_integer]
+      offer_trade(offering, requesting, player)
+    end
   end
   
   def offer_trade(offering, requesting, player)
@@ -149,7 +214,14 @@ class Player
   end
   
   def handle_trade(offering, requesting, player)
-    
+    if player.can_afford?(requesting)
+      offering.set_owner(player)
+      player.deduct_funds(requesting)
+      self.add_funds(requesting)
+      display_offer_completed(offering, requesting, player)
+    else
+      display_cant_afford(player)
+    end
   end
   
   def play_jail_round  
@@ -207,7 +279,7 @@ class Player
   
   def pass_go
     display_passed_go
-    add_funds(200)
+    add_funds(1)
   end
   
   def handle_square
@@ -222,12 +294,35 @@ class Player
     # code to handle transfer of ownership
   end
 
-  def sell_assets_phase(price)
+  def raise_money_phase(price, optional = true)
     done = false
+    unless optional
+      display_bankrupt_warning
+    end
     until can_afford?(price) || done do
-      puts "Would you like to sell assets?"
-      done = player_input_negative? #changed from Marc's original version player_input_affirmative?
-      display_sell_assets_menu unless done
+      puts "Would you like to sell/ trade assets or mortgage properties?"
+      if player_input_negative?
+        if optional
+          done = true
+        else
+          puts "Are you sure? You'll be declared bankrupt unless you raise more money."
+          done = player_input_affirmative?
+        end        
+      end
+      handle_raise_money_phase unless done
+    end
+  end
+  
+  def handle_raise_money_phase
+    display_raise_money_options
+    selection = player_input_integer
+    case selection
+    when 1
+      handle_trading_phase
+    when 2
+      handle_mortgaging_phase
+    when 3
+      handle_sell_improvements_phase #not done yet
     end
   end
 
@@ -273,22 +368,22 @@ class Player
   def purchase_property(property)
     deduct_funds(property.price)
     property.set_owner(self)
-    @owned_properties << property
+    #@owned_properties << property
     display_purchased_property(property)
     display_current_balance
   end
   
   def pay_rent(property)
-    sell_assets_phase(property.rent)
+    raise_money_phase(property.rent, false)
     if can_afford?(property.rent)
       deduct_funds(property.rent)
       property.owner.add_funds(property.rent)
       display_rent_paid(property)
       display_current_balance
     else
-      display_bankrupt_warning
-      sell_assets_phase(property.rent)
-      bankrupt
+      bankrupt!
+      #display_bankrupt_warning
+      #pay_rent(property)
     end
   end
   
@@ -296,7 +391,7 @@ class Player
     @bankrupt_status == true
   end
   
-  def bankrupt
+  def bankrupt!
     display_player_bankrupt
     @bankrupt_status = true
   end
