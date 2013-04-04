@@ -28,6 +28,10 @@ class Player
     puts "#{@name} rolled a #{@dice.value}"
   end
   
+  def display_rolled_doubles
+    puts "Rolled doubles!"
+  end
+  
   def display_passed_go
     puts "#{@name} passed go and collected $200!"
   end
@@ -121,25 +125,36 @@ class Player
   
   def display_player_options_menu
     puts "------------Options Menu-------------"
-    puts "Type the number of the option you want (or press enter to skip):"
-    puts "1: Trade with other players."
-    puts "2: Mortgage properties."
-    puts "3: Sell houses and/or hotels to bank."
-    if has_monopolies?
-      puts "4: Purchase improvements"
+    if owned_properties.any?
+      puts "Type the number of the option you want (or press enter to skip):"
+      puts "1: Trade with other players."
+      puts "2: Mortgage properties."
+      puts "3: Sell houses and/or hotels to bank." if improved_properties.any?
+      puts "4: Purchase improvements" if monopoly_properties.any?
+    else
+      puts "No options available, press enter to continue."
     end
   end
   
   def display_buy_improvements_menu
     puts "------------Buy Improvements Menu-------------"
     puts "Type the number of the property for which you would like to buy improvements."
-    owned_properties.each do |key, property|
-      if property.is_monopoly?
-        puts "#{key}: #{property.name}, existing improvements: #{property.improvements_count}, 
+    monopoly_properties.each do |key, property|
+      puts "#{key}: #{property.name}, existing improvements: #{property.improvements_count}, 
         improvements cost: #{property.improvements_cost} each."
-      end
-    end    
+    end
   end
+  
+  # def display_buy_improvements_menu
+  #   puts "------------Buy Improvements Menu-------------"
+  #   puts "Type the number of the property for which you would like to buy improvements."
+  #   owned_properties.each do |key, property|
+  #     if property.is_monopoly?
+  #       puts "#{key}: #{property.name}, existing improvements: #{property.improvements_count}, 
+  #       improvements cost: #{property.improvements_cost} each."
+  #     end
+  #   end    
+  # end
   
   def display_buy_improvements_count(property)
     puts "You selected #{property.name}, existing improvements: #{property.improvements_count}, 
@@ -158,19 +173,18 @@ class Player
   def display_sell_improvements_menu
     puts "------------Sell Improvements Menu-------------"
     puts "Type the number of the property for which you would like to sell improvements."
-    if owned_properties
-      has_properties = false
-      owned_properties.each do |key, property|
-        if property.has_improvements?
-          puts "#{key}: #{property.name}, improvements: #{property.improvements_count}, sale value: 
-          #{property.sale_value}"
-          has_properties = true
-        end
-      end
-      puts "Sorry none of your properties have improvements to sell (press enter to continue)." unless has_properties
-    else
-      puts "Sorry you don't own any properties (press enter to continue)."
+    improved_properties.each do |key, property|
+      puts "#{key}: #{property.name}, improvements: #{property.improvements_count}, 
+      sale value: #{property.sale_value}"
     end
+  end  
+  
+  def improved_properties
+    owned_properties.select {|key, property| property.has_improvements? }
+  end
+  
+  def monopoly_properties
+    owned_properties.select {|key, property| property.is_monopoly? }
   end
   
   def display_sell_improvements_count(property)
@@ -200,7 +214,7 @@ class Player
   def owned_property_names
     names = []
     owned_properties.each do |key, property|
-      names << [property.name, "improvments: #{property.improvements_count}"]
+      names << [property.name, "improvements: #{property.improvements_count}"]
     end
     names
   end
@@ -216,16 +230,11 @@ class Player
     else
       finish_round
     end
-    cleanup_phase
+    #cleanup_phase
   end
   
   def third_double?
     @doubles_count == 3
-  end
-  
-  def has_monopolies?
-    result = @board.squares.select {|key, square| square.is_a?(Property) && square.is_monopoly?}.any?
-    result
   end
 
   def finish_round
@@ -278,7 +287,7 @@ class Player
   end
   
   def play_jail_round  
-    if @dice.doubles
+    if @dice.doubles?
       @jail_count = 0
       finish_round
     else
@@ -304,7 +313,12 @@ class Player
 
   def roll_dice
     @dice.roll!
-    @doubles_count += 1 if @dice.doubles?
+    if @dice.doubles?
+      @doubles_count += 1
+      display_rolled_doubles
+    else
+      @doubles_count = 0
+    end
   end
   
   def won?
@@ -312,7 +326,7 @@ class Player
   end
   
   def in_jail?
-    @jail_count > 1
+    @jail_count >= 1
   end
   
   def go_to_jail
@@ -332,7 +346,7 @@ class Player
   
   def pass_go
     display_passed_go
-    add_funds(1)
+    add_funds(200)
   end
   
   def handle_square
@@ -385,12 +399,9 @@ class Player
   
   def handle_sell_improvements_phase
     display_sell_improvements_menu
-    if player_input_integer
       property = owned_properties[player_input_integer]
       display_sell_improvements_count(property)
       property.sell_improvements(self, player_input_integer)
-      
-    end
     display_current_balance
   end
   

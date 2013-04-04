@@ -5,10 +5,5 @@ require_relative 'lib/property'
 require_relative 'lib/board'
 require_relative 'lib/special_square'
 
-game = Game.new
-#puts Player.methods
-# puts game.inspect
-game.play!
-
-# dice = Dice.new
-# puts dice.inspect
+#game = Game.new
+#game.play!

@@ -35,10 +35,6 @@ class Property
     puts "#{player.name} chose not to buy this property or can't afford it."
   end
   
-  def display_auction_message
-    puts "Property is going to auction."
-  end
-  
   def display_property_is_mortgage
     puts "This property is mortgaged, no rent is due."
   end 
@@ -78,7 +74,6 @@ class Property
       player.purchase_property(self)
     else
       display_not_buying(player)  
-      auction_property
     end
   end
   
@@ -89,10 +84,6 @@ class Property
     
   def set_owner(player)
     @owner = player
-  end
-  
-  def auction_property
-    display_auction_message
   end
 
   def assess_rent(player)
